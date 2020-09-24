@@ -32,7 +32,7 @@ class Timetable(object):
         return data.loc[data["День недели"] == week_day[time_of_notification.weekday()]] \
                    .loc[(data["Периодичность"] == "Всегда")
                         | (data["Периодичность"] == "Нечётная" if time_of_notification.week % 2 else "Чётная")] \
-                   # .loc[data["Начало пары"] == time_of_notification.strftime("%H:%M")]
+                   .loc[data["Начало пары"] == time_of_notification.strftime("%H:%M")]
 
     def make_notifications(self, before_minutes: int = 5):
         if self._data_type == "config":
