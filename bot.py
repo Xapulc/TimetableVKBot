@@ -1,51 +1,36 @@
 import argparse
-import asyncio
 import json
-import numpy as np
+import re
 
-from loguru import logger
-from vkbottle import Bot, Message
+from vkbottle import Message
 
+from Bot import TimetableBot
 from Timetable import Timetable
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Бот в ВК для уведомления о расписании")
     parser.add_argument('token', metavar='T', type=str, help='токен бота')
     token = parser.parse_args().token
-    bot = Bot(token)
+
+    bot = TimetableBot(token)
     before_minutes = 5
+    timetable = None
+    timetable_keyboard = None
 
     with open("timetable_config.json", "r") as timetable_file:
         timetables = {timetable_json.pop("peer_id"): Timetable(timetable_json)
                       for timetable_json in json.load(timetable_file)}
 
-    @bot.on.message_handler(text="Да или нет?")
+    @bot.on.chat_message()
     async def wrapper(ans: Message):
-        await ans(np.random.choice(["Да", "Нет"], 1)[0])
+        message_texts = re.findall(r"^\[club{0}\|[^\]]+\](.*)".format(bot.group_id), ans.text)
+        if len(message_texts) > 0:
+            message_text = message_texts[0].strip()
+            await bot.get_answer(ans, message_text, chat_flg=True)
 
-    @bot.on.message_handler(text="/get_peer_id")
+    @bot.on.message()
     async def wrapper(ans: Message):
-        await ans(f"peer_id = {ans.peer_id}")
-
-    @bot.on.message_handler(text='/timetable_start')
-    async def wrapper(ans: Message):
-        logger.info(ans)
-        await ans(f"Привет, @id{ans.from_id}(землянин)")
-        if ans.peer_id in timetables.keys():
-            timetable = timetables[ans.peer_id]
-            await ans(f"Расписание \"{timetable}\" найдено.\n"
-                      + f"Буду уведомлять вас за {before_minutes} минут(ы) до начала занятия.")
-
-            while True:
-                messages = timetable.make_notifications(before_minutes)
-                for message in messages:
-                    await ans(message)
-                if len(messages) > 0:
-                    await asyncio.sleep(120)
-                else:
-                    await asyncio.sleep(15)
-        else:
-            await ans("Извините, я не знаю подходящего расписания для нашей беседы.\n"
-                      + "Обратитесь к запустившему меня, чтобы тот добавил ваше расписание в конфиг.")
+        message_text = ans.text
+        await bot.get_answer(ans, message_text, chat_flg=False)
 
     bot.run_polling()
