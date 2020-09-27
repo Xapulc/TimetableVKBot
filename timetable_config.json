@@ -1,20 +1,21 @@
-{
-  "Расписание 405 группы": {
-    "data_type": "google",
-    "data_link": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUgkllEAwqpdxTaKs3Th8nQkGCj1w0VfG1alkP7cq-A1p8cdiaqSxhaeJNoU-umje-beasuYioMblM/pub?gid=0&single=true&output=csv"
-  },
-  "Дополнительные главы случайных процессов": {
-    "data_type": "config",
-    "data": [
-      {
-        "День недели": "Вторник",
-        "Начало пары": "13:00",
-        "Конец пары": "14:35",
-        "Тип пары": "Лекция",
-        "Периодичность": "Всегда",
-        "Предмет": "Дополнительные главы случайных процессов",
-        "Расположение": "https://us04web.zoom.us/j/3746036044?pwd=bEI1TWFKTmNIa3ZmK0tjRW1taEVlZz09"
-      }
-    ]
-  }
-}
+[{
+  "description": "Расписание 405 группы",
+  "peer_id": 2000000003,
+  "data_type": "google",
+  "data_link": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUgkllEAwqpdxTaKs3Th8nQkGCj1w0VfG1alkP7cq-A1p8cdiaqSxhaeJNoU-umje-beasuYioMblM/pub?gid=0&single=true&output=csv"
+}, {
+  "description": "Дополнительные главы случайных процессов",
+  "peer_id": 108889815,
+  "data_type": "config",
+  "data": [
+    {
+      "День недели": "Воскресенье",
+      "Начало пары": "13:00",
+      "Конец пары": "14:35",
+      "Тип пары": "Лекция",
+      "Периодичность": "Всегда",
+      "Предмет": "Дополнительные главы случайных процессов",
+      "Расположение": "https://us04web.zoom.us/j/3746036044?pwd=bEI1TWFKTmNIa3ZmK0tjRW1taEVlZz09"
+    }
+  ]
+}]
