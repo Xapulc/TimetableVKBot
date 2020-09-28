@@ -17,10 +17,6 @@ if __name__ == "__main__":
     timetable = None
     timetable_keyboard = None
 
-    with open("timetable_config.json", "r") as timetable_file:
-        timetables = {timetable_json.pop("peer_id"): Timetable(timetable_json)
-                      for timetable_json in json.load(timetable_file)}
-
     @bot.on.chat_message()
     async def wrapper(ans: Message):
         message_texts = re.findall(r"^\[club{0}\|[^\]]+\](.*)".format(bot.group_id), ans.text)

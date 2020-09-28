@@ -2,4 +2,4 @@ __pycache__
 venv
 .idea
 __pycharm__
-timetable_config.json
+timetable_config*.json

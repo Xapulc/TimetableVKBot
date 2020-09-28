@@ -1,5 +1,7 @@
 import asyncio
 import json
+import os
+
 import numpy as np
 from loguru import logger
 
@@ -12,15 +14,20 @@ from Timetable import Timetable
 class TimetableBot(Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        config_path = "timetable_config.json"
 
-        with open("timetable_config.json", "r") as timetable_file:
-            self._timetables = {timetable_json.pop("peer_id"): Timetable(timetable_json)
-                                for timetable_json in json.load(timetable_file)}
+        assert os.path.exists(config_path), f"Config file {config_path} not found."
+        with open(config_path, "r") as timetable_file:
+            timetables_json = json.load(timetable_file)
+            self._admins = timetables_json["admins"]
+            self._timetables = {timetable.pop("peer_id"): Timetable(timetable)
+                                for timetable in timetables_json["timetables"]}
+            self._timetable_work_flg = False
 
     def _generate_keyboard(self) -> str:
         keyboard = Keyboard()
         keyboard.add_row()
-        keyboard.add_button(Text("Запустить автоуведомления."), color="positive")
+        keyboard.add_button(Text("Расписание на сегодня."), color="positive")
         keyboard.add_row()
         keyboard.add_button(Text("Да или нет?"), color="primary")
         keyboard.add_row()
@@ -33,23 +40,35 @@ class TimetableBot(Bot):
             await ans("Привет! 😊", keyboard=self._generate_keyboard())
         elif message == "/get_peer_id":
             await ans(f"peer_id = {ans.peer_id}")
-        elif message == "Запустить автоуведомления.":
-            if ans.peer_id in self._timetables.keys():
-                timetable = self._timetables[ans.peer_id]
-                await ans(f"Расписание \"{timetable}\" найдено.\n"
-                          + f"Буду уведомлять вас за {timetable.get_before_minutes()} минут(ы) до начала занятия.")
+        elif message == "/timetable_start":
+            if ans.from_id in self._admins:
+                if not self._timetable_work_flg:
+                    await ans("Привет. Следующие расписания будут запущены:\n"
+                              + "\n".join("📅 " + str(timetable) for timetable in self._timetables.values()))
+                    self._timetable_work_flg = True
 
-                while True:
-                    messages = timetable.make_notifications()
-                    for message in messages:
-                        await ans(message)
-                    if len(messages) > 0:
-                        await asyncio.sleep(120)
-                    else:
-                        await asyncio.sleep(15)
+                    while True:
+                        messages_flg = False
+                        for peer_id, timetable in self._timetables.items():
+                            answer = timetable.make_notification(time="now")
+                            if answer is not None:
+                                messages_flg = True
+                                await self.api.messages.send(message=answer, peer_id=peer_id, random_id=0)
+
+                        if messages_flg:
+                            await asyncio.sleep(120)
+                        else:
+                            await asyncio.sleep(15)
+                else:
+                    await ans("Уведомления уже запущены.")
             else:
-                await ans("Извините, я не знаю подходящего расписания для нашей беседы.\n"
-                          + "Обратитесь к запустившему меня, чтобы тот добавил ваше расписание в конфиг.")
+                await ans("Извините, но вы не можете воспользоваться этой командой.")
+        elif message == "Расписание на сегодня.":
+            if ans.peer_id in self._timetables.keys():
+                answer = self._timetables[ans.peer_id].make_notification(time="today")
+                await self.api.messages.send(message=answer, peer_id=ans.peer_id, random_id=0)
+            else:
+                await ans("К сожалению, для вашей беседы у меня нет расписания.")
         elif message == "Да или нет?":
             await ans(np.random.choice(["Да", "Нет"], 1)[0])
         elif message == "Поддержать.":
