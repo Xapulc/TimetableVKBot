@@ -30,6 +30,7 @@ class Timetable(object):
             "Суббота",
             "Воскресенье"
         ]
+        
         time_of_notification = pd.Timestamp("now") + pd.Timedelta(minutes=self._before_minutes) if time == "now" \
                                else pd.Timestamp("now")
 
@@ -37,7 +38,8 @@ class Timetable(object):
                           .loc[(data["Периодичность"] == "Всегда")
                                | (data["Периодичность"] == ("Нечётная" if time_of_notification.week % 2 else "Чётная"))]
         if time == "now":
-            return return_data.loc[data["Начало пары"] == time_of_notification.strftime("%H:%M")]
+            return_data["Начало пары"] = return_data["Начало пары"].apply(lambda start_time: start_time if len(start_time) == 5 else "0" + start_time)
+            return return_data.loc[return_data["Начало пары"] == time_of_notification.strftime("%H:%M")]
         else:
             return return_data
 

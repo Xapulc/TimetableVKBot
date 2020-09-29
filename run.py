@@ -11,11 +11,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Бот в ВК для уведомления о расписании")
     parser.add_argument('token', metavar='T', type=str, help='токен бота')
     token = parser.parse_args().token
-
     bot = TimetableBot(token)
-    before_minutes = 5
-    timetable = None
-    timetable_keyboard = None
 
     @bot.on.chat_message()
     async def wrapper(ans: Message):
