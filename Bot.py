@@ -24,8 +24,12 @@ class TimetableBot(Bot):
                                 for timetable in timetables_json["timetables"]}
             self._timetable_work_flg = False
 
-    def _generate_keyboard(self) -> str:
-        keyboard = Keyboard()
+    def _generate_keyboard(self, peer_id, chat_flg=False) -> str:
+        admin_flg = peer_id in self._admins
+        keyboard = Keyboard(one_time=not admin_flg and chat_flg)
+        if not self._timetable_work_flg and admin_flg:
+            keyboard.add_row()
+            keyboard.add_button(Text("Включить уведомления."), color="positive")
         keyboard.add_row()
         keyboard.add_button(Text("Расписание на сегодня."), color="positive")
         keyboard.add_row()
@@ -36,16 +40,17 @@ class TimetableBot(Bot):
 
     async def get_answer(self, ans: Message, message: str, chat_flg: bool = None):
         logger.info(ans)
-        if message == "" or message == ".":
-            await ans("Привет! 😊", keyboard=self._generate_keyboard())
+        if message.lower() in ["", ".", ",", "привет"]:
+            await ans("Привет! 😊", keyboard=self._generate_keyboard(ans.peer_id, chat_flg))
         elif message == "/get_peer_id":
             await ans(f"peer_id = {ans.peer_id}")
-        elif message == "/timetable_start":
+        elif message == "Включить уведомления.":
             if ans.from_id in self._admins:
                 if not self._timetable_work_flg:
-                    await ans("Привет. Следующие расписания будут запущены:\n"
-                              + "\n".join("📅 " + str(timetable) for timetable in self._timetables.values()))
                     self._timetable_work_flg = True
+                    await ans("Привет. Следующие расписания будут запущены:\n"
+                              + "\n".join("📅 " + str(timetable) for timetable in self._timetables.values()),
+                              keyboard=self._generate_keyboard(ans.peer_id, chat_flg))
 
                     while True:
                         messages_flg = False
