@@ -1,3 +1,5 @@
+from urllib.error import HTTPError
+
 import pandas as pd
 
 from loguru import logger
@@ -47,7 +49,12 @@ class Timetable(object):
         if self._data_type == "config":
             data = self._get_record_on_time(self._items, time)
         else:
-            data = self._get_record_on_time(pd.read_csv(self._link), time)
+            try:
+                data = self._get_record_on_time(pd.read_csv(self._link), time)
+            except HTTPError as e:
+                logger.error(e)
+                logger.error(f"Url = {self._link}")
+                return None
         notifications = []
         for index, row in data.iterrows():
             notification = f"""{row["Тип пары"]} по предмету "{row["Предмет"]}".\n""" \

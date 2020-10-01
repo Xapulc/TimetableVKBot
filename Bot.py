@@ -71,6 +71,8 @@ class TimetableBot(Bot):
         elif message == "Расписание на сегодня.":
             if ans.peer_id in self._timetables.keys():
                 answer = self._timetables[ans.peer_id].make_notification(time="today")
+                if answer is None:
+                    answer = "Извините, но я не имею доступа к вашему расписанию."
                 await self.api.messages.send(message=answer, peer_id=ans.peer_id, random_id=0)
             else:
                 await ans("К сожалению, для вашей беседы у меня нет расписания.")
