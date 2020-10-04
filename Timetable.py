@@ -1,4 +1,4 @@
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
 import pandas as pd
 
@@ -51,7 +51,7 @@ class Timetable(object):
         else:
             try:
                 data = self._get_record_on_time(pd.read_csv(self._link), time)
-            except HTTPError as e:
+            except (HTTPError, URLError) as e:
                 logger.error(e)
                 logger.error(f"Url = {self._link}")
                 return None

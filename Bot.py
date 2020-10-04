@@ -4,6 +4,7 @@ import os
 
 import numpy as np
 from loguru import logger
+from urllib.error import URLError
 
 from vkbottle import Bot, Message
 from vkbottle.api.keyboard import Keyboard, Text
@@ -58,7 +59,12 @@ class TimetableBot(Bot):
                             answer = timetable.make_notification(time="now")
                             if answer is not None:
                                 messages_flg = True
-                                await self.api.messages.send(message=answer, peer_id=peer_id, random_id=0)
+                                try:
+                                    await self.api.messages.send(message=answer, peer_id=peer_id, random_id=0)
+                                except URLError as e:
+                                    logger.error(e)
+                                    logger.error(f"Message = {answer}")
+                                    messages_flg = False
 
                         if messages_flg:
                             await asyncio.sleep(120)
@@ -74,6 +80,7 @@ class TimetableBot(Bot):
                 if answer is None:
                     answer = "Извините, но я не имею доступа к вашему расписанию."
                 await self.api.messages.send(message=answer, peer_id=ans.peer_id, random_id=0)
+
             else:
                 await ans("К сожалению, для вашей беседы у меня нет расписания.")
         elif message == "Да или нет?":
