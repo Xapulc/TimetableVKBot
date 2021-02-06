@@ -2,7 +2,7 @@ import argparse
 import json
 import re
 
-from vkbottle import Message
+from vkbottle.bot import Message
 
 from Bot import TimetableBot
 from Timetable import Timetable
@@ -25,4 +25,4 @@ if __name__ == "__main__":
         message_text = ans.text
         await bot.get_answer(ans, message_text, chat_flg=False)
 
-    bot.run_polling()
+    bot.run_forever()

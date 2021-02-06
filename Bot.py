@@ -6,15 +6,15 @@ import numpy as np
 from loguru import logger
 from urllib.error import URLError
 
-from vkbottle import Bot, Message
-from vkbottle.api.keyboard import Keyboard, Text
+from vkbottle.bot import Bot, Message
+from vkbottle import Keyboard, Text, KeyboardButtonColor
 
 from Timetable import Timetable
 
 
 class TimetableBot(Bot):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(task_each_event=True, *args, **kwargs)
         config_path = "timetable_config.json"
 
         assert os.path.exists(config_path), f"Config file {config_path} not found."
@@ -29,29 +29,29 @@ class TimetableBot(Bot):
         admin_flg = peer_id in self._admins
         keyboard = Keyboard(one_time=not admin_flg and chat_flg)
         if not self._timetable_work_flg and admin_flg:
-            keyboard.add_row()
-            keyboard.add_button(Text("Включить уведомления."), color="positive")
-        keyboard.add_row()
-        keyboard.add_button(Text("Расписание на сегодня."), color="positive")
-        keyboard.add_row()
-        keyboard.add_button(Text("Да или нет?"), color="primary")
-        keyboard.add_row()
-        keyboard.add_button(Text("Поддержать."))
-        return keyboard.generate()
+            keyboard.row()
+            keyboard.add(Text("Включить уведомления."), color=KeyboardButtonColor.POSITIVE)
+        keyboard.row()
+        keyboard.add(Text("Расписание на сегодня."), color=KeyboardButtonColor.POSITIVE)
+        keyboard.row()
+        keyboard.add(Text("Да или нет?"), color=KeyboardButtonColor.PRIMARY)
+        keyboard.row()
+        keyboard.add(Text("Поддержать."))
+        return keyboard.get_json()
 
     async def get_answer(self, ans: Message, message: str, chat_flg: bool = None):
         logger.info(ans)
         if message.lower() in ["", ".", ",", "привет"]:
-            await ans("Привет! 😊", keyboard=self._generate_keyboard(ans.peer_id, chat_flg))
+            await ans.answer("Привет! 😊", keyboard=self._generate_keyboard(ans.peer_id, chat_flg))
         elif message == "/get_peer_id":
-            await ans(f"peer_id = {ans.peer_id}")
+            await ans.answer(f"peer_id = {ans.peer_id}")
         elif message == "Включить уведомления.":
             if ans.from_id in self._admins:
                 if not self._timetable_work_flg:
                     self._timetable_work_flg = True
-                    await ans("Привет. Следующие расписания будут запущены:\n"
-                              + "\n".join("📅 " + str(timetable) for timetable in self._timetables.values()),
-                              keyboard=self._generate_keyboard(ans.peer_id, chat_flg))
+                    await ans.answer("Привет. Следующие расписания будут запущены:\n"
+                                     + "\n".join("📅 " + str(timetable) for timetable in self._timetables.values()),
+                                     keyboard=self._generate_keyboard(ans.peer_id, chat_flg))
 
                     while True:
                         messages_flg = False
@@ -71,9 +71,9 @@ class TimetableBot(Bot):
                         else:
                             await asyncio.sleep(15)
                 else:
-                    await ans("Уведомления уже запущены.")
+                    await ans.answer("Уведомления уже запущены.")
             else:
-                await ans("Извините, но вы не можете воспользоваться этой командой.")
+                await ans.answer("Извините, но вы не можете воспользоваться этой командой.")
         elif message == "Расписание на сегодня.":
             if ans.peer_id in self._timetables.keys():
                 answer = self._timetables[ans.peer_id].make_notification(time="today")
@@ -82,10 +82,10 @@ class TimetableBot(Bot):
                 await self.api.messages.send(message=answer, peer_id=ans.peer_id, random_id=0)
 
             else:
-                await ans("К сожалению, для вашей беседы у меня нет расписания.")
+                await ans.answer("К сожалению, для вашей беседы у меня нет расписания.")
         elif message == "Да или нет?":
-            await ans(np.random.choice(["Да", "Нет"], 1)[0])
+            await ans.answer(np.random.choice(["Да", "Нет"], 1)[0])
         elif message == "Поддержать.":
-            await ans("Спасибо! Ссылка на проект: https://github.com/Xapulc/TimetableVKBot.")
+            await ans.answer("Спасибо! Ссылка на проект: https://github.com/Xapulc/TimetableVKBot.")
         else:
-            await ans("Не знаю что вам ответить.")
+            await ans.answer("Не знаю что вам ответить.")
