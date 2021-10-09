@@ -56,7 +56,19 @@ class TimetableBot(Bot):
                     while True:
                         messages_flg = False
                         for peer_id, timetable in self._timetables.items():
-                            answer = timetable.make_notification(time="now")
+                            answer, err = timetable.make_notification(time="now")
+                            if err is not None:
+                                for admin in self._admins:
+                                    msg = f"""
+                                    Нотификация к peer_id={peer_id} по расписанию "{timetable.get_description()}" 
+                                    завершилась с ошибкой: {err}
+                                    """
+                                    try:
+                                        await self.api.messages.send(message=msg, peer_id=admin, random_id=0)
+                                    except URLError as e:
+                                        logger.error(e)
+                                        logger.error(f"Message = {answer}")
+                                        messages_flg = False
                             if answer is not None:
                                 messages_flg = True
                                 try:
