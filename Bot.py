@@ -88,7 +88,11 @@ class TimetableBot(Bot):
                 await ans.answer("Извините, но вы не можете воспользоваться этой командой.")
         elif message == "Расписание на сегодня.":
             if ans.peer_id in self._timetables.keys():
-                answer = self._timetables[ans.peer_id].make_notification(time="today")
+                answer, err = self._timetables[ans.peer_id].make_notification(time="today")
+                if err is not None:
+                    answer = f"""
+                              Нотификация завершилась с ошибкой: {err}
+                              """
                 if answer is None:
                     answer = "Извините, но я не имею доступа к вашему расписанию."
                 await self.api.messages.send(message=answer, peer_id=ans.peer_id, random_id=0)
