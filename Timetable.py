@@ -22,6 +22,9 @@ class Timetable(object):
     def get_before_minutes(self):
         return self._before_minutes
 
+    def get_description(self):
+        return self._description
+
     def _get_record_on_time(self, data: pd.DataFrame, time="now") -> pd.DataFrame:
         week_day = [
             "Понедельник",
@@ -45,16 +48,16 @@ class Timetable(object):
         else:
             return return_data
 
-    def make_notification(self, time="now"):
+    def make_notification(self, time="now") -> (str, Exception):
         if self._data_type == "config":
             data = self._get_record_on_time(self._items, time)
         else:
             try:
                 data = self._get_record_on_time(pd.read_csv(self._link), time)
-            except (HTTPError, URLError) as e:
+            except (HTTPError, URLError, ConnectionError) as e:
                 logger.error(e)
                 logger.error(f"Url = {self._link}")
-                return None
+                return None, e
         notifications = []
         for index, row in data.iterrows():
             notification = f"""{row["Тип пары"]} по предмету "{row["Предмет"]}".\n""" \
@@ -63,12 +66,12 @@ class Timetable(object):
             notifications.append(notification)
         if time == "now":
             if len(notifications) > 0:
-                return ("@all \n" if self._all_notification_flg else "") + "\n\n".join(notifications)
+                return ("@all \n" if self._all_notification_flg else "") + "\n\n".join(notifications), None
             else:
-                return None
+                return None, None
         else:
             if len(notifications) == 0:
-                return "Сегодня нет пар."
+                return "Сегодня нет пар.", None
             else:
                 return f"Сегодня {'одна пара' if len(notifications) == 1 else f'{len(notifications)} пар'}.\n\n" \
-                       + "\n\n".join(notifications)
+                       + "\n\n".join(notifications), None
