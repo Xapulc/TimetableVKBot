@@ -15,7 +15,7 @@ docker build -t {tag} --build-arg VK_TOKEN={vk_token} .
 docker run --env VK_TOKEN={vk_token} {tag} 
 ```
 
-### Запуск докер-образа бота в фоном режиме
+### Запуск докер-образа бота в фоновом режиме
 
 ```
 docker run --env VK_TOKEN={vk_token} -d -t -i {tag} 
