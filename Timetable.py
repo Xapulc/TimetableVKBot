@@ -54,7 +54,7 @@ class Timetable(object):
         else:
             try:
                 data = self._get_record_on_time(pd.read_csv(self._link), time)
-            except (HTTPError, URLError, ConnectionError) as e:
+            except (Exception) as e:
                 logger.error(e)
                 logger.error(f"Url = {self._link}")
                 return None, e
