@@ -65,7 +65,7 @@ class TimetableBot(Bot):
                                     """
                                     try:
                                         await self.api.messages.send(message=msg, peer_id=admin, random_id=0)
-                                    except URLError as e:
+                                    except Exception as e:
                                         logger.error(e)
                                         logger.error(f"Message = {answer}")
                                         messages_flg = False
@@ -73,7 +73,7 @@ class TimetableBot(Bot):
                                 messages_flg = True
                                 try:
                                     await self.api.messages.send(message=answer, peer_id=peer_id, random_id=0)
-                                except URLError as e:
+                                except Exception as e:
                                     logger.error(e)
                                     logger.error(f"Message = {answer}")
                                     messages_flg = False
